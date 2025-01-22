@@ -367,6 +367,28 @@ describe('Test Pulse', () => {
       //   const updatedJob = (await globalPulseInstance.jobs({ name: 'sendEmail' }))[0];
       //   expect(updatedJob.attrs.nextRunAt).toBeNull();
       // });
+
+      test('should not skip queued recurring jobs while starting a new pulse instance in case of resumeOnRestart is disabled', async () => {
+        await globalPulseInstance.stop();
+
+        // Create a recurring job that is in queue and wasn't locked by any pulse instance
+        const job = globalPulseInstance.create('processData', { data: 'sample' });
+        job.attrs.repeatInterval = '10 minutes';
+        job.attrs.lockedAt = null;
+        job.attrs.nextRunAt = new Date(Date.now() - 10000);
+        await job.save();
+
+        // Starting a new pulse instance
+        const newPulseInstance = new Pulse({ mongo: mongoDb, resumeOnRestart: false });
+        newPulseInstance.define('processData', jobProcessor);
+        await newPulseInstance.start();
+
+        await delay(1000);
+        const updatedJob = (await newPulseInstance.jobs({ name: 'processData' }))[0];
+        expect(updatedJob.attrs.lastFinishedAt).toBeDefined();
+
+        await newPulseInstance.stop();
+      });
     });
   });
 
