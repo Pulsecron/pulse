@@ -5,7 +5,7 @@
 ## `pulse.processEvery(interval)`
 
 {% hint style="info" %}
-The `name` method of the `Pulse` class allows setting or updating the name of the job queue. This name can be used for identification and management purposes within applications that may handle multiple queues.
+The `processEvery` method of the `Pulse` class allows to configure the job processing interval, meaning the frequency at which Pulse will query the database looking for jobs that need to be processed.
 {% endhint %}
 
 ### Example Usage
